@@ -1,0 +1,1165 @@
+---
+title: <h1 dir= "rtl" align= "center"> <font size= "7" font face= "b titr">تحلیل نتایج نظرسنجی رضایت‌شغلی در شرکت سلیم‌البرز شعبه مازندران</font>
+  </h1>
+author: <h1 dir= "rtl" align= "center"> <font size= "5" font face= "b mitra"> <strong>
+ مهندسین مشاور رسا </strong> </font> </h1>
+date: <h1 dir= "rtl" align= "center"> <font size= "3" font face= "b mitra">آبان ماه 1402 </font> </h1>
+output:  
+  html_document:
+    theme: null
+    highlight: null
+    css: styles1.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy = TRUE, fig.align = "center")
+
+```
+
+
+```{r Calling-required-packages, include=FALSE}
+library(tidyverse)
+library(openxlsx)
+library(GGally)
+library(psych)
+library(leaps)
+library(Hmisc)
+library(gmodels)
+library(rlang)
+library(Rcpp)
+library(vcd)
+library(treemapify)
+library(grid)
+library(janitor)
+library(rtlr)
+```
+
+
+```{r Loading-data, include = FALSE}
+#فایل اکسل داده‌های سلیم البرز که در پوشه
+#data
+#قرار دارد انتخاب شود
+JDI <- read.xlsx(xlsxFile = choose.files() , sheet = "JDI" , colNames = TRUE , rowNames = FALSE, skipEmptyRows = FALSE, skipEmptyCols = FALSE)
+```
+
+
+```{r Loading-Loading-Qnamesarnames, include = FALSE}
+#فایل اکسل داده‌های سلیم البرز که در پوشه
+#Data
+#قرار دارد انتخاب شود
+JDI_SM <- loadWorkbook(file = choose.files())
+
+gender_names <- read.xlsx(
+  JDI_SM,
+  sheet = "Legend",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(2:3),
+  cols = 1
+)
+
+marital_status_names <- read.xlsx(
+  JDI_SM,
+  sheet = "Legend",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(5:6),
+  cols = 1
+)
+
+education_levels_names <- read.xlsx(
+  JDI_SM,
+  sheet = "Legend",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(9:14),
+  cols = 1
+)
+
+department_names <- read.xlsx(
+  JDI_SM,
+  sheet = "Legend",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(17:28),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE)
+
+position_names <- read.xlsx(
+  JDI_SM,
+  sheet = "Legend",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(31:68),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+exp_interval_names <- read.xlsx(
+  JDI_SM,
+  sheet = "Legend",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(71:77),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+department_names_new <- data.frame(X1 = "کل سازمان")
+
+department_names1 <- rbind(department_names, department_names_new)
+
+```
+
+
+```{r  Loading-Qnames, include = FALSE}
+question_lab <- loadWorkbook(file = choose.files())
+#فایل اکسل به نام 
+#names
+#که در پوشه 
+#Data
+#قرار دارد انتخاب شود
+question_jig <- read.xlsx(
+  question_lab,
+  sheet = "jig",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:18),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+question_wop <- read.xlsx(
+  question_lab,
+  sheet = "wop",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:18),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+question_pay <- read.xlsx(
+  question_lab,
+  sheet = "pay",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:9),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+question_ofp <- read.xlsx(
+  question_lab,
+  sheet = "ofp",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:9),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+question_sup <- read.xlsx(
+  question_lab,
+  sheet = "sup",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:18),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+question_pyp <- read.xlsx(
+  question_lab,
+  sheet = "pyp",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:18),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+question_sts <- read.xlsx(
+  question_lab,
+  sheet = "sts",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:8),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+
+question_demo <- read.xlsx(
+  question_lab,
+  sheet = "demo",
+  colNames = F,
+  skipEmptyRows = F,
+  rows = c(1:8),
+  cols = 1,
+  check.names = FALSE,
+  sep.names = ".",
+  namedRegion = NULL,
+  na.strings = "NA",
+  fillMergedCells = FALSE
+)
+
+```
+
+اگر بعد از اجرای کد‌های چانک بالا مشخص شده که داده از دست‌رفته‌ای در داده‌ها وجود دارد، چانک زیر را اجرا کنید و اگر نه از اجرای چانک زیر صرف‌نظر کنید. 
+
+```{r Remove-na, tidy='formatR', include=FALSE}
+which(is.na(JDI))
+
+JDI <- JDI |> fill(id, gender, age, marital_status, level_of_education, department, position, work_experience_month) |>  mutate_all(~(replace_na(., 1)))
+
+which(is.na(JDI))
+```
+
+```{r buildin-factor-version-of-data, include=FALSE}
+fac_JDI <- JDI |>  mutate_all(~(as.factor(.)))
+```
+
+```{r Ijad-Tabaghat-e-senni, include=FALSE}
+age_max_band <-  round(x = max(JDI$age), digits = -1)
+age_min_band <- round(x = min(JDI$age), digits = -1) -5
+
+ageinterval <- seq(age_min_band, age_max_band, by = 5)# Ijad Tabaghat e senni
+
+
+lab <- rep(NA, times = length(ageinterval) -1)
+for (i in 1:length(ageinterval)) {
+  if (ageinterval[i] < age_max_band) {
+    lab[i] <- paste(ageinterval[i], "-" , ageinterval[i+1], sep = "")
+  } else {
+    break
+  }
+}
+
+JDI$age_interval  <- cut(x = JDI$age ,breaks=ageinterval,right=F,include.lowest=T,labels=lab)
+
+```
+
+```{r Ijad-Tabaghat-e-sabegheh, include=FALSE}
+expinterval <- c(0,6,12,24,36,48,60, 1000) #Ijad Tabaghat e sabegheh
+labexp <- c("zir6Mah" ,"6mahTa1Sal", "1Ta2sal", "2Ta3sal", "3Ta4sal", "4Ta5sal", "Balaye5Sal")
+JDI$exp_interval  <- cut(x = JDI$work_experience_month ,breaks=expinterval,right=F,include.lowest=T,labels=labexp)
+```
+
+```{r Data-Spiliting-demographic, include=FALSE}
+JDI_fac_demographic <- JDI |> mutate_all(~(as.factor(.))) |> # dadeha ra taghsim mikonim, dar in bakhsh dade haye domgraphic ra joda kardim.
+  select(id:work_experience_month, age_interval, exp_interval,  - age, - work_experience_month)
+```
+
+
+```{r Data-Spiliting-wop, include=FALSE}
+JDI_fac_wop <- JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month ,starts_with("work_on_present_job_"))
+
+JDI_fac_wop1 <- JDI_fac_wop
+
+colnames(JDI_fac_wop1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_wop1)[9:26] <- question_wop[,1]
+
+question_list_wop <- list()
+for (i in question_wop$X1) {
+ana1 <-  JDI_fac_wop1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_wop[[which(question_wop$X1 == i)]] <- ana1
+  question_list_wop[[which(question_wop$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_wop, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_wop.xlsx",  overwrite = TRUE)
+```
+
+
+```{r Data-Spiliting-ofp, include=FALSE}
+JDI_fac_ofp <-  JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month, starts_with("Opportunities_for_Promotion_"))
+
+
+JDI_fac_ofp1 <- JDI_fac_ofp
+
+colnames(JDI_fac_ofp1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_ofp1)[9:17] <- question_ofp[,1]
+
+question_list_ofp <- list()
+for (i in question_ofp$X1) {
+ana1 <-  JDI_fac_ofp1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_ofp[[which(question_ofp$X1 == i)]] <- ana1
+  question_list_ofp[[which(question_ofp$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_ofp, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_ofp.xlsx",  overwrite = TRUE)
+```
+
+
+```{r Data-Spiliting-pay, include=FALSE}
+JDI_fac_pay <- JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month, starts_with("pay_"))
+
+JDI_fac_pay1 <- JDI_fac_pay
+
+colnames(JDI_fac_pay1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_pay1)[9:17] <- question_pay[,1]
+
+question_list_pay <- list()
+for (i in question_pay$X1) {
+ana1 <-  JDI_fac_pay1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_pay[[which(question_pay$X1 == i)]] <- ana1
+  question_list_pay[[which(question_pay$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_pay, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_pay.xlsx",  overwrite = TRUE)
+
+```
+
+
+```{r Data-Spiliting-pyp, include=FALSE}
+JDI_fac_pyp <- JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month, starts_with("people_on_your_present_job_"))
+
+JDI_fac_pyp1 <- JDI_fac_pyp
+
+colnames(JDI_fac_pyp1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_pyp1)[9:26] <- question_pyp[,1]
+
+question_list_pyp <- list()
+for (i in question_pyp$X1) {
+ana1 <-  JDI_fac_pyp1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_pyp[[which(question_pyp$X1 == i)]] <- ana1
+  question_list_pyp[[which(question_pyp$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_pyp, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_pyp.xlsx",  overwrite = TRUE)
+```
+
+
+```{r Data-Spiliting-sup, include=FALSE}
+JDI_fac_sup <- JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month, starts_with("supervision_"))
+
+JDI_fac_sup1 <- JDI_fac_sup
+
+colnames(JDI_fac_sup1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_sup1)[9:26] <- question_sup[,1]
+
+question_list_sup <- list()
+for (i in question_sup$X1) {
+ana1 <-  JDI_fac_sup1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_sup[[which(question_sup$X1 == i)]] <- ana1
+  question_list_sup[[which(question_sup$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_sup, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_sup.xlsx",  overwrite = TRUE)
+```
+
+
+```{r Data-Spiliting-jig, include=FALSE}
+JDI_fac_jig <- JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month, starts_with("jig_"))
+
+
+JDI_fac_jig1 <- JDI_fac_jig
+
+colnames(JDI_fac_jig1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_jig1)[9:26] <- question_jig[,1]
+
+question_list_jig <- list()
+for (i in question_jig$X1) {
+ana1 <-  JDI_fac_jig1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_jig[[which(question_jig$X1 == i)]] <- ana1
+  question_list_jig[[which(question_jig$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_jig, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_jig.xlsx",  overwrite = TRUE)
+
+```
+
+
+```{r Data-Spiliting-sts, include=FALSE}
+JDI_fac_sts <- JDI |> mutate_all(~(as.factor(.))) |> 
+  select(id:work_experience_month, age_interval, exp_interval,- age, - work_experience_month, starts_with("your_stress_at_work_"))
+
+JDI_fac_sts1 <- JDI_fac_sts
+
+colnames(JDI_fac_sts1)[1:8] <- question_demo[,1]
+colnames(JDI_fac_sts1)[9:16] <- question_sts[,1]
+
+question_list_sts <- list()
+for (i in question_sts$X1) {
+ana1 <-  JDI_fac_sts1  |> 
+  tabyl(var1 = `واحد سازمانی`, var2 = !!sym(i)) |>
+  adorn_totals("row") |>
+  adorn_percentages("row") |>
+  adorn_pct_formatting() |>
+  adorn_ns() |> 
+  adorn_title("combined")
+  ana1 <- untabyl(ana1)
+  question_list_sts[[which(question_sts$X1 == i)]] <- ana1
+  question_list_sts[[which(question_sts$X1 == i)]][1] <- department_names1$X1
+}
+
+write.xlsx(question_list_sts, file = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/question_list_sts.xlsx",  overwrite = TRUE)
+
+```
+
+```{r demographic-data-preparation, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2), include=FALSE}
+gender <- factor(JDI_fac_demographic$gender, levels = c(1, 2), labels = c("Mard", "ZAn"))
+
+marital_status <- factor(JDI_fac_demographic$marital_status, levels = c(1, 2), labels = c("Moteahel", "Mojarad"))
+
+level_of_education <- factor(JDI_fac_demographic$level_of_education, levels = c(1:6), labels = c("ZirDiplom","Diplom","Kardani", "Karshenasi","KarshenasiArshad", "Phd"))
+
+department_max_band <-  max(JDI$department)
+department_min_band <-  min(JDI$department)
+department <- factor(JDI_fac_demographic$department, levels = c(department_min_band:department_max_band), labels = c(department_min_band:department_max_band))
+
+position_max_band <-  max(JDI$position)
+position_min_band <-  min(JDI$position)
+position <- factor(JDI_fac_demographic$position, levels = c(position_min_band:position_max_band), labels = c(position_min_band:position_max_band))
+
+jdi_demographic<- data.frame(gender , age_interval = JDI_fac_demographic$age_interval, marital_status, level_of_education , department, position, exp_interval = JDI_fac_demographic$exp_interval)
+
+jdi_demographic1 <- data.frame(gender , age_interval = JDI_fac_demographic$age_interval, marital_status, level_of_education , department, position, exp_interval = JDI_fac_demographic$exp_interval)
+```
+
+```{r demographic-Introduction, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+table(gender)
+table(jdi_demographic1$age_interval)
+table(marital_status)
+table(level_of_education)
+table(department)
+table(position)
+table(jdi_demographic$exp_interval)
+```
+
+```{r customized-theme, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2), include=FALSE}
+windowsFonts(BMitra = windowsFont("B Mitra"))
+windowsFonts(BZar = windowsFont("B Zar"))
+mytheme <- theme(title = element_text(family = "BMitra", face = "bold"),
+        legend.text = element_text(family = "BMitra"),
+        axis.title.y = element_text(family = "BMitra"), 
+        axis.title.x = element_text(family = "BMitra"),
+        legend.title = element_text(family = "BMitra"),
+        axis.text.x =  element_text(family = "BMitra"),
+        axis.text.y =  element_text(family = "BMitra")
+        )
+
+```
+
+```{r demographic-gender-Visualizing, echo=FALSE}
+jdi_demographic1$gender <- factor(jdi_demographic1$gender, 
+                       labels= gender_names$X1)
+
+gender_demographic <- ggplot(jdi_demographic1, aes(x = gender, fill = gender)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BZar") +
+  guides(fill = guide_legend(title = "جنسیت")) +
+  labs(title="نمودار جنسیت",                   
+       x="جنسیت",                               
+       y="تعداد") + 
+  mytheme
+
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("gender_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(gender_demographic)
+dev.off()
+```
+
+```{r age-interval-Visualizing, echo=FALSE}
+age_interval_demographic <- ggplot(jdi_demographic1, aes(x = age_interval, fill = age_interval)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "محدوده سنی")) +
+  labs(title="نمودار محدوده سنی",                   
+       x="محدوده سنی",                               
+       y="تعداد") + 
+  mytheme
+
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("age_interval_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(age_interval_demographic)
+dev.off()
+
+
+```
+
+```{r marital-status-Visualizing, echo=FALSE}
+jdi_demographic1$marital_status <- factor(jdi_demographic1$marital_status, 
+                       labels= marital_status_names$X1)
+
+
+marital_status_demographic <- ggplot(jdi_demographic1, aes(x = marital_status, fill = marital_status)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "وضعیت تاهل")) +
+  labs(title="نمودار وضعیت تاهل",                   
+       x="وضعیت تاهل",                               
+       y="تعداد") + 
+  mytheme
+
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("marital_status_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(marital_status_demographic)
+dev.off()
+
+```
+
+```{r level-of-education-Visualizing, echo=FALSE}
+jdi_demographic1$level_of_education <- factor(jdi_demographic1$level_of_education, 
+                       labels= education_levels_names$X1)
+
+
+level_of_education_demographic <- ggplot(jdi_demographic1, aes(x = level_of_education, fill = level_of_education)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "مدرک تحصیلی")) +
+  labs(title="نمودار سطح تحصیلات",                   
+       x="مدرک تحصیلی",                               
+       y="تعداد") + 
+  mytheme
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("level_of_education_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(level_of_education_demographic)
+dev.off()
+
+table(position)
+table(jdi_demographic1$exp_interval)
+```
+
+```{r department-Visualizing, echo=FALSE}
+jdi_demographic1$department <- factor(jdi_demographic1$department, 
+                       labels= department_names$X1)
+
+
+department_demographic <- ggplot(jdi_demographic1, aes(x = department, fill = department)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "دپارتمان")) +
+  labs(title="نمودار واحدهای سازمانی",                   
+       x="دپارتمان",                               
+       y="تعداد") + 
+  mytheme +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1, size=8))
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("department_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(department_demographic)
+dev.off()
+
+```
+
+```{r position-Visualizing, echo=FALSE, fig.height=10, fig.width=15}
+jdi_demographic1$position <- factor(jdi_demographic1$position, 
+                       labels= position_names$X1)
+
+
+position_demographic <- ggplot(jdi_demographic1, aes(x = position, fill = position)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "پست سازمانی")) +
+  labs(title="نمودار پست‌های سازمانی",                   
+       x="پست",                               
+       y="تعداد") + 
+  mytheme +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0 , size=10))
+
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("position_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(position_demographic)
+dev.off()
+
+
+```
+
+```{r exp-interval-Visualizing, echo=FALSE}
+jdi_demographic1$exp_interval <- factor(jdi_demographic1$exp_interval, 
+                       labels= exp_interval_names$X1)
+
+
+exp_interval_demographic <- ggplot(jdi_demographic1, aes(x = exp_interval, fill = exp_interval)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "سابقه")) +
+  labs(title="نمودار سابقه سازمانی",                   
+       x="سابقه",                               
+       y="تعداد") + 
+  mytheme +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust =0, size=8))
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("exp_interval_demographic.png", width = 20, height = 20, units = "cm", res = 300)
+print(exp_interval_demographic)
+dev.off()
+
+```
+
+
+```{r demographic-Advanced}
+(table_jdi_1 <- ftable(xtabs(~ gender + marital_status + age_interval, data = jdi_demographic)))
+
+(table_jdi_2 <- ftable(addmargins(xtabs(~ department + exp_interval, data= jdi_demographic))))
+
+(table_jdi_3 <- ftable(xtabs(~ exp_interval+position, data= jdi_demographic)))
+
+(table_jdi_4 <- ftable(addmargins(xtabs(~ gender +age_interval + marital_status +exp_interval, data= jdi_demographic))))
+
+(table_jdi_5 <- ftable(xtabs(~ gender + marital_status+ exp_interval, data= jdi_demographic)))
+(table_jdi_5 <- ftable(xtabs(~ gender + exp_interval, data= jdi_demographic)))
+```
+
+
+```{r marital-gender-plot, echo=FALSE}
+marital_gender_plot <- ggplot(jdi_demographic1, aes(x = gender, fill = marital_status)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra") +
+  guides(fill = guide_legend(title = "وضعیت تاهل")) +
+  labs(title="نمودار تاهل به جنسیت",                   
+       x="جنسیت",                               
+       y="تعداد") + 0
+  mytheme
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("marital_gender_plot.png", width = 20, height = 20, units = "cm", res = 300)
+print(marital_gender_plot)
+dev.off()
+```
+
+
+```{r exp-departmant-plot, echo=FALSE}
+exp_department_plot <- ggplot(jdi_demographic1, aes(x = department, fill = exp_interval)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra", size = 3) +
+  guides(fill = guide_legend(title = " سابقه حضور در سازمان")) +
+  labs(title="نمودار سابقه در هر دپارتمان",                   
+       x="دپارتمان",                               
+       y="تعداد") + 
+  mytheme +
+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0, size=8))
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("exp_department_plot.png", width = 20, height = 30, units = "cm", res = 300)
+print(exp_department_plot)
+dev.off()
+```
+
+```{r age-departmant-plot, echo=FALSE}
+age_departmant_plot <- ggplot(jdi_demographic1, aes(x = department, fill = age_interval)) +
+  geom_bar(position = "stack") + 
+  stat_count(geom = "text", aes(label = after_stat(count)), position = position_stack(vjust = 0.5), family = "BMitra", size = 3) +
+  guides(fill = guide_legend(title = " سن")) +
+  labs(title="نمودار پراکندگی سن در هر دپارتمان",                   
+       x="دپارتمان",                               
+       y="تعداد") + 
+  mytheme +
+theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0, size=8))
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("age_departmant_plot.png", width = 20, height = 30, units = "cm", res = 300)
+print(age_departmant_plot)
+dev.off()
+```
+
+
+```{r demographic-Advanced-Visualizing, tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+
+
+plotdata <- jdi_demographic1 |> 
+  count(position, exp_interval)
+
+plotdata <- jdi_demographic1 |> 
+  count(department, exp_interval)
+
+
+
+
+tree_plot <- ggplot(plotdata,
+       aes(fill = department, 
+           area = n,
+           label = department,
+           subgroup=exp_interval)) +
+  geom_treemap() + 
+  geom_treemap_subgroup_border() +
+  geom_treemap_subgroup_text(family = "BMitra",
+    place = "middle",
+    colour = "black",
+    alpha = 0.3,
+    grow = FALSE) +
+  geom_treemap_text(family = "BMitra",  colour = "white", 
+                    place = "centre",
+                    grow=F) +
+  theme(legend.position = "none") +
+  mytheme
+
+setwd("D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots")
+png("tree_plot.png", width = 40, height = 20, units = "cm", res = 300)
+print(tree_plot)
+dev.off()
+
+```
+
+```{r save-to-excel, eval=FALSE, include=FALSE,  tidy=TRUE, tidy.opts=list(arrow=TRUE, indent=2)}
+wb <- createWorkbook(
+  creator = "RASA-Company",
+  title = "Elmira",
+  subject = "Analysis"
+)
+
+addWorksheet(wb, "Demography")
+
+writeData(
+  wb,
+  sheet = "Demography" ,
+  table_jdi_1,
+  startCol = 5,
+  startRow = 1,
+  array = FALSE,
+  xy = NULL,
+  colNames = TRUE,
+  rowNames = TRUE,
+  name = "table1",
+  sep = ", "
+)
+
+writeData(
+  wb,
+  sheet = "Demography",
+  table_jdi_2,
+  startCol = 1,
+  startRow = 1,
+  array = T,
+  colNames = TRUE,
+  rowNames = T,
+  headerStyle = openxlsx_getOp("headerStyle"),
+  borders = openxlsx_getOp("borders", "none"),
+  borderColour = openxlsx_getOp("borderColour", "black"),
+  borderStyle = openxlsx_getOp("borderStyle", "thin"),
+  withFilter = openxlsx_getOp("withFilter", FALSE),
+  keepNA = openxlsx_getOp("keepNA", FALSE),
+  na.string = openxlsx_getOp("na.string"),
+  name = "table2",
+  sep = ", "
+)
+saveWorkbook(wb, file = "D:/EX E/JDI/Elmira/table1.xlsx", overwrite = T, returnValue = T)
+
+
+
+```
+
+```{r Q1-Q14-data-preparation, include=FALSE}
+JDI_summary <- JDI |> 
+  mutate(
+    jig = rowSums(across(starts_with("jig_"))), #nomre koli rezayat az shoghl sazman
+    wop = rowSums(across(starts_with("work_on_present_job_"))), #nomre koli rezayat az kode kar dar sazman
+    ofp = 2 * rowSums(across(starts_with("Opportunities_for_Promotion_"))), #nomre koli rezayat az forsat haye trafi dar sazman
+    pay = 2 * rowSums(across(starts_with("pay_"))), #nomre koli rezayat az pardakht dar sazman
+    pyp = rowSums(across(starts_with("people_on_your_present_job_"))), #nomre koli rezayat az hamkaran dar sazman
+    sup = rowSums(across(starts_with("supervision_"))), #nomre koli rezayat az sarparast dar sazman
+    sts = 2.25 * rowSums(across(starts_with("your_stress_at_work_"))) #nomre koli esteres dark shode dar sazman
+    ) |> 
+  dplyr::select(!work_on_present_job_1:your_stress_at_work_8)
+JDI_summary$gender <- gender 
+JDI_summary$marital_status <- marital_status 
+JDI_summary$level_of_education <- level_of_education 
+JDI_summary$department <- department 
+JDI_summary$position <- position 
+JDI_summary$age <- NULL 
+JDI_summary$work_experience_month <- NULL
+myvars <- colnames(JDI_summary)
+JDI_summary_col_names <- myvars[2:8]
+JDI_summary_var_names <- myvars[9:15]
+```
+
+
+```{r Q1-Q14, include=FALSE}
+result_list <- list()
+
+for (i in 1:length(JDI_summary_var_names)) {
+  for (j in 1:length(JDI_summary_col_names)) {
+    result_name <- paste(JDI_summary_var_names[i], "_avr_by_", JDI_summary_col_names[j], sep = "")
+    
+    result <- JDI_summary |> 
+      group_by(!!sym(JDI_summary_col_names[j]))  |> 
+      summarise(
+        mean = round(x =  mean(!!sym(JDI_summary_var_names[i])), digits = 2) ,
+        count = n(),
+        percent = round((x = mean/54)*100, digits = 2)
+        )
+    d <- length(JDI_summary_col_names) + 1 + i
+    total_mean <- round(x =  mean(as_vector(JDI_summary[d])), digits = 2)
+      
+    result <- result |> mutate(!!sym(JDI_summary_col_names[j]) := as.character(!!sym(JDI_summary_col_names[j])))
+    
+    total_count <- sum(result$count)
+    total_percent <- round((x = total_mean/54)*100, digits = 2)
+    
+    # Convert the grouping column to character and add the "total" row
+    result <- rbind(result, c("total", total_mean, total_count,total_percent ))
+    result$mean <- as.numeric(result$mean)
+    result$count <- as.numeric(result$count)
+    result$percent <- as.numeric(result$percent)
+    
+    result_list[[result_name]] <- result
+  }
+}
+
+write.xlsx(result_list, file = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Docs/results.xlsx", asTable = T, overwrite = TRUE)
+```
+
+
+```{r correlations, include=FALSE}
+
+cor_total <- JDI_summary |> 
+  dplyr::select(c("pay","ofp", "pyp", "sup", "wop", "sts", "jig")) |>
+  corr.test( use="complete", method = "pearson" , ci = T, alpha = 0.05)
+cor_total$stars
+
+```
+
+
+```{r Visualizing-results}
+JDI_summary <- JDI |> 
+  mutate(
+    jig = rowSums(across(starts_with("jig_"))), #nomre koli rezayat az shoghl sazman
+    wop = rowSums(across(starts_with("work_on_present_job_"))), #nomre koli rezayat az kode kar dar sazman
+    ofp = 2 * rowSums(across(starts_with("Opportunities_for_Promotion_"))), #nomre koli rezayat az forsat haye trafi dar sazman
+    pay = 2 * rowSums(across(starts_with("pay_"))), #nomre koli rezayat az pardakht dar sazman
+    pyp = rowSums(across(starts_with("people_on_your_present_job_"))), #nomre koli rezayat az hamkaran dar sazman
+    sup = rowSums(across(starts_with("supervision_"))), #nomre koli rezayat az sarparast dar sazman
+    sts = 2.25 * rowSums(across(starts_with("your_stress_at_work_"))) #nomre koli esteres dark shode dar sazman
+    ) |> 
+  dplyr::select(!work_on_present_job_1: your_stress_at_work_8)
+myvars <- colnames(JDI_summary)
+jdi_summary_col_names <- myvars[2:8]
+jdi_summary_var_names <- myvars[9:15]
+num_list <- list()
+for (i in 1:length(jdi_summary_col_names)) {
+  num_name <- paste(jdi_summary_col_names[i])
+  Num <- JDI_summary |>
+  group_by(!!sym(jdi_summary_col_names[i]))  |>  
+  summarise(count = n()) 
+  num_list[[num_name]] <- as.data.frame(Num) 
+}
+names(num_list)
+
+for (i in 1:length(num_list)) {
+  nameplot <- paste(colnames(num_list[[i]])[1])
+  filtered_data <- JDI_summary |>
+  dplyr::group_by(!!sym(colnames(num_list[[i]])[1]) %in% which(x = num_list[[i]]$count > 3)) 
+  p <- GGally::ggpairs(filtered_data, columns = c("pay", "ofp", "pyp", "sup", "wop", "sts", "jig"), ggplot2::aes(fill = as.factor(.data[[colnames(num_list[[i]])[1]]]), colour = as.factor(.data[[colnames(num_list[[i]])[1]]]), alpha = 0.3))
+  ggsave(filename = paste(nameplot, ".png", sep = ""), plot = p, device = "png", path = "D:/EX E/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30, height = 20, units = "cm")
+}
+
+which(x = num_list[[3]]$count > 3)
+num_list[[3]]$count > 3
+```
+
+
+```{r Visualizing-results}
+gender <- JDI_summary |> 
+  filter(gender %in% which(x = num_list[[1]]$count[] > 3)) |>
+  GGally::ggpairs(columns = c("pay","ofp", "pyp", "sup", "wop", "sts", "jig"), ggplot2::aes(fill  = as.factor(gender) , colour = as.factor(gender), alpha= 0.3))
+ggsave(filename = "department.png", plot = gender, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+
+department <- JDI_summary |> 
+  filter(department %in% which(x = num_list[[5]]$count[] > 3)) |>
+  GGally::ggpairs(columns = c("pay","ofp", "pyp", "sup", "wop", "sts", "jig"), ggplot2::aes(fill  = as.factor(department) , colour = as.factor(department), alpha= 0.3))
+ggsave(filename = "department.png", plot = department, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 50,
+  height = 40,
+  units = "cm")
+
+position <- JDI_summary |> 
+  filter(position %in% which(x = num_list[[6]]$count[] > 3)) |>
+  GGally::ggpairs(columns = c("pay","ofp", "pyp", "sup", "wop", "sts", "jig"), ggplot2::aes(fill  = as.factor(position) , colour = as.factor(position), alpha= 0.3))
+ggsave(filename = "position.png", plot = position, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 50,
+  height = 40,
+  units = "cm")
+
+
+
+marital_status <- JDI_summary |> 
+  filter(marital_status %in% which(x = num_list[[3]]$count[] > 3)) |>
+  GGally::ggpairs(columns = c("pay","ofp", "pyp", "sup", "wop", "sts", "jig"), ggplot2::aes(fill  = as.factor(marital_status) , colour = as.factor(marital_status), alpha= 0.3))
+ggsave(filename = "marital_status.png", plot = marital_status, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+
+
+level_of_education <- JDI_summary |> 
+  filter(level_of_education %in% which(x = num_list[[4]]$count[] > 3)) |>
+  GGally::ggpairs(columns = c("pay","ofp", "pyp", "sup", "wop", "sts", "jig"), ggplot2::aes(fill  = as.factor(level_of_education) , colour = as.factor(level_of_education), alpha= 0.3))
+ggsave(filename = "level_of_education.png", plot = level_of_education, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+```
+
+
+```{r Visualizing-results-1}
+
+which(x = num_list[[3]]$count[] > 3)
+
+
+department_forosh <- JDI_summary |> 
+  filter(department == 7) |>
+  select(c("pay","ofp", "pyp", "sup", "wop", "sts", "jig")) |> 
+  ggpairs()
+ggsave(filename = "department_forosh.png", plot = department_forosh, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30, height = 20, units = "cm")
+
+department_anbar <-JDI_summary |> 
+  filter(department == 3) |>
+  select(c("pay","ofp", "pyp", "sup", "wop", "sts", "jig")) |> 
+  ggpairs()
+ggsave(filename = "department_anbar.png", plot = department_anbar, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+
+department_tarabari <-JDI_summary |> 
+  filter(department == 4) |>
+  select(c("pay","ofp", "pyp", "sup", "wop", "sts", "jig")) |> 
+  ggpairs()
+ggsave(filename = "department_tarabari.png", plot = department_tarabari, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+
+department_MH <-JDI_summary |> 
+  filter(department == 8) |>
+  select(c("pay","ofp", "pyp", "sup", "wop", "sts", "jig")) |> 
+  ggpairs()
+ggsave(filename = "department_MH.png", plot = department_MH, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+
+department_MHF <-JDI_summary |> 
+  filter(department == 9) |>
+  select(c("pay","ofp", "pyp", "sup", "wop", "sts", "jig")) |> 
+  ggpairs()
+ggsave(filename = "department_MHF.png", plot = department_MHF, device = "png", path = "E:/JDI/SalimAlborz/SalimAlborzMazandaran/Plots", width = 30,
+  height = 20,
+  units = "cm")
+
+jdi_data_at_glance |> 
+  GGally::ggpairs(columns = c("pay","ofp", "pyp", "sup", "wop", "sts", "jig"))
+```
+
+
+```{r regression}
+print(names(JDI_summary))
+
+
+
+fit <- lm(jig ~ pay + ofp + pyp + sup + wop + sts , data = JDI_summary)
+summary(fit)
+step(fit, direction="both")
+
+
+
+fit1 <- lm(jig ~ pyp + sup + wop + sts , data = JDI_summary)
+summary(fit1)
+
+
+JDI_exp_interval <- JDI_summary |> 
+  filter(department == 7, exp_interval == "zir6Mah")
+
+JDI_exp_interval_h <- JDI_summary |> 
+  filter(department == 7,exp_interval == "Balaye5Sal")
+
+fit_exp_interval <- lm(wop ~ pay + ofp + pyp + sup  + sts , data = JDI_exp_interval)
+summary(fit_exp_interval)
+step(fit_exp_interval, direction="both")
+
+
+fit_exp_interval_h <- lm(wop ~ pay + ofp + pyp + sup  + sts , data = JDI_exp_interval_h)
+summary(fit_exp_interval_h)
+step(fit_exp_interval_h, direction="both")
+
+fit_exp_interval1 <- lm(jig ~ pay  + wop , data = JDI_exp_interval)
+summary(fit_exp_interval1)
+
+plot(fit_exp_interval1)
+par(mfrow=c(2,2))
+
+
+fit_exp_interval_h1 <- lm(jig ~ sup + wop , data = JDI_exp_interval_h)
+summary(fit_exp_interval_h1)
+
+plot(fit_exp_interval_h1)
+par(mfrow=c(2,2))
+
+```
+
+```{r regression1}
+relweights <- function(fit, ...) {                         
+  R <- cor(fit$model)   
+  nvar <- ncol(R)          
+  rxx <- R[2:nvar, 2:nvar] 
+  rxy <- R[2:nvar, 1]      
+  svd <- eigen(rxx)        
+  evec <- svd$vectors                           
+  ev <- svd$values         
+  delta <- diag(sqrt(ev))  
+  lambda <- evec %*% delta %*% t(evec)        
+  lambdasq <- lambda ^ 2   
+  beta <- solve(lambda) %*% rxy           
+  rsquare <- colSums(beta ^ 2)                   
+  rawwgt <- lambdasq %*% beta ^ 2    
+  import <- (rawwgt / rsquare) * 100 
+  import <- as.data.frame(import)
+  row.names(import) <- names(fit$model)[2:nvar]   
+  names(import) <- "Weights"
+  import <- import[order(import$Weights), , drop = FALSE]
+
+  # Extract the weights and labels separately
+  weights <- import$Weights
+  labels <- row.names(import)
+
+  dotchart(weights, labels = labels,
+           xlab = "% of R-Square", pch = 19,
+           main = "Relative Importance of Predictor Variables", 
+           sub = paste("Total R-Square =", round(rsquare, digits = 3)),
+           ...)
+  
+  return(import)
+}
+
+states <- JDI_summary[, c("pay", "ofp", "sup", "pyp", "wop", "sts", "jig")]
+fit_t <- lm(jig ~ pyp + sup + wop + sts, data = states)
+
+relweights(fit_t)
+
+
+states <- JDI_exp_interval[, c("pay", "ofp", "sup", "pyp", "wop", "sts", "jig")]
+fit_t <- lm(jig ~ pay + pyp + wop, data = states)
+relweights(fit_t, col="blue")
+
+```
+
+```{r regression}
+
+
+states <- JDI_summary[,c("pay", "ofp", "sup", "pyp", "wop", "sts", "jig")]
+zstates <- as.data.frame(scale(states))
+zfit <- lm(jig ~ pay + ofp + pyp + sup + wop + sts, data=zstates)
+coef(zfit)
+
+fit <- lm(jig ~ pay + ofp + pyp + sup + wop + sts, data=zstates)
+
+relweights(fit, col="blue")
+```
+
+```{r One-way ANOVA}
+plotdata 
+
+as.factor(jdi_data_at_glance$department)  
+  
+  jdi_data_at_glance |> group_by(as.factor(jdi_data_at_glance$department)) |>
+  summarize(n = n(), mean = mean(jig), sd = sd(jig), ci = qt(0.975, df = n - 1) * sd / sqrt(n))
+plotdata
+```
+
+
+```{r tests}
+glimpse(jdi_df)
+mytable <- xtabs(~ position + work_experience_month, data = jdi_df)
+chisq.test(mytable) #Chi-square test of independence
+
+fisher.test(mytable) #Fisher’s exact test
+
+corr.test(x = jdi_data_at_glance[ , 9:16 ])
+corr.test(x = jdi_data_at_glance[ , 9:16 ], method = "spearman")
+corr.test(x = jdi_data_at_glance[ , 9:16 ], method = "kendall")
+
+
+corr.test(x = jdi_df[ , 9:26 ])
+corr.test(x = jdi_df[ , 9:26 ], method = "spearman")
+corr.test(x = jdi_df[ , 9:26 ], method = "kendall")
+
+group1 <- jdi_data_at_glance |> filter(gender == 1) 
+  
+group2 <- jdi_data_at_glance |> filter(gender == 2)
+  
+t.test(group1$sup, group2$sup)
+
+kruskal.test(jig ~ position, data = jdi_data_at_glance)
+source("https://rkabacoff.com/RiA/wmc.R")
+
+```
+
